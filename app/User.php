@@ -64,9 +64,9 @@ class User extends Authenticatable
         // 既にフォローしているかの確認
         $exist = $this->is_following($userId);
         // 相手が自分自身かどうかの確認
-        $its_me = $this->id == $userUd;
+        $its_me = $this->id == $userId;
         
-        if ($exist && $its_me) {
+        if ($exist && !$its_me) {
             $this->followings()->detach($userId);
             return true;
         } else {
@@ -85,5 +85,34 @@ class User extends Authenticatable
         $follow_user_ids = $this->followings()->pluck('users.id')->toArray();
         $follow_user_ids[] = $this->id;
         return Micropost::whereIn('user_id', $follow_user_ids);
+    }
+    
+    public function favorites() {
+         return $this->belongsToMany(Micropost::class, 'favorites','user_id','micropost_id')->withTimestamps();
+    }
+    
+    public function favorite($micropost_id) 
+    {
+        if($this->is_favorite($micropost_id)) {
+            return false;
+        } else {
+            $this->favorites()->attach($micropost_id);
+            return true;
+        }
+    }
+    
+    public function unfavorite($micropost_id) 
+    {
+        if($this->is_favorite($micropost_id)) {
+            $this->favorites()->detach($micropost_id);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public function is_favorite($micropost_id)
+    {
+        return $this->favorites()->where('micropost_id', $micropost_id)->exists();
     }
 }

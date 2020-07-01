@@ -30,6 +30,7 @@ class MicropostsController extends Controller
         
         $request->user()->microposts()->create([
             'content' => $request->content,
+            'micropost_id' =>$request->user()->id,
         ]);
         
         return back();
